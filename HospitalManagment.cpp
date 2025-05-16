@@ -7,13 +7,14 @@
 #include <cstdlib>
 #include <vector>
 #include <map>
+#include <regex> //for date input validation
+#include <limits>
 
 using namespace std;
 
-const int MAX_RECORDS = 100;
 
 struct Staff {
-    int id;
+    int id{};
     string name;
     string department;
     string shift;
@@ -22,7 +23,7 @@ struct Staff {
 struct Equipment {
     string name;
     string department;
-    int quantity;
+    int quantity{};
 };
 
 struct LabResult {
@@ -35,7 +36,7 @@ struct LabResult {
 
 struct Medicine {
     string name;
-    int quantity;
+    int quantity{};
 };
 
 struct appointment {
@@ -46,14 +47,14 @@ struct appointment {
 struct patient {
     string id;
     string name;
-    int age;
+    int age{};
     appointment apt;
     // add more fields as needed
 };
 
 struct billing {
     string patient_id;
-    double amount;
+    double amount{};
     string status;
     // add more fields as needed
 };
@@ -135,6 +136,7 @@ void staff_menu() {
             case 2: show_staff_by_id(); break;
             case 3: remove_staff(); break;
             case 4: staff_statistics(); break;
+            default: cout << "Invalid Input!";
         }
     } while (ch != 5);
 }
@@ -375,17 +377,17 @@ int main() {
 
     while (true) {
         int choice1;
-        cout << "Welcome to the Hospital Management System" << endl;
+        cout << "\nWelcome to the Hospital Management System" << endl;
         cout << "1. Patient Management" << endl;
         cout << "2. Staff Management" << endl;
-        cout << "3. Billing Management" << endl;
-        cout << "4. Reports and Statistics" << endl;
-        cout << "5. Feedback" << endl;
-        cout << "6. Exit" << endl;
+        cout << "3. Lab and Equipment Management" << endl;
+        cout << "4. Pharmacy Management" << endl;
+        cout << "5. Billing Management" << endl;
+        cout << "6. Reports and Statistics" << endl;
+        cout << "7. Feedback" << endl;
+        cout << "8. Exit" << endl;
         cout << "Please enter your choice: ";
         cin >> choice1;
-        if (switchInputCheck()) continue;
-
         switch (choice1) {
             case 1: {
                 cout << "Patient Management" << endl;
@@ -579,49 +581,6 @@ int main() {
                 }
                 break;
             }
-    case 2:
-        cout << "Schedule Appointment" << endl;
-        cout << "Enter Patient ID: ";
-        cin >> patient_id;
-        {
-            bool found = false;
-            for (int i = 0; i < patient_count; i++)
-            {
-                if (patients[i].id == patient_id)
-                {
-                    found = true;
-                    cout << "Enter Appointment Date (YYYY-MM-DD): ";
-                    cin >> patients[i].appointment_date;
-                    cout << "Appointment scheduled successfully!" << endl;
-                    break;
-                }
-            }
-            if (!found)
-            {
-                cout << "Patient not found." << endl;
-            }
-        }
-        break;
-
-    case 3:
-        cout << "Check Appointment Records" << endl;
-        // Placeholder for appointment records checking
-        break;
-
-    case 4:
-        cout << "Electronic Medical Records" << endl;
-        // Placeholder for EMR handling
-        break;
-
-    case 5:
-        cout << "Exiting..." << endl;
-        return 0;
-
-    default:
-        cout << "Invalid choice. Please try again." << endl;
-    }
-    break;
-}
 
 case 2:
     staff_menu();
