@@ -38,12 +38,16 @@ struct Medicine {
     int quantity;
 };
 
+struct appointment {
+    string appointment_date, description;
+};
+
 // Placeholder structs to prevent compilation error
 struct patient {
     string id;
     string name;
     int age;
-    int appointment_date;
+    appointment apt;
     // add more fields as needed
 };
 
@@ -300,106 +304,281 @@ void pharmacy_menu() {
         }
     } while (choice != 6);
 }
+bool switchInputCheck() {
+    if (cin.fail()) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Invalid choice. Please try again." << endl;
+        return true;
+    }
+    return false;
+}
+// Function to trim leading and trailing whitespace
+string trim(const string& str) {
+    size_t first = str.find_first_not_of(" \t\r\n");
+    size_t last = str.find_last_not_of(" \t\r\n");
+
+    if (first == string::npos || last == string::npos)
+        return "";
+
+    return str.substr(first, last - first + 1);
+}
 
 int main() {
+    constexpr int MAX_RECORDS = 100;
     patient patients[MAX_RECORDS];
-    Staff staffs[MAX_RECORDS]; // original declaration was lowercase 'staff'
     billing billings[MAX_RECORDS];
-    int patient_count = 0, staff_count = 0, billing_count = 0;
-    string patient_id;
+    int patient_count = 0, billing_count = 0;
+    string patient_id, line;
 
-    load_staff_data(); 
-    load_medicine_data(); 
-    initializeDepartments();
+    // Read patient records from file
+    fstream patientCheck("Patient Record.txt", ios::in);
+    if (patientCheck.is_open()) {
+        getline(patientCheck, line); // Skip header
+        while (getline(patientCheck, line)) {
+            stringstream ss(line);
+            getline(ss, patients[patient_count].name, '\t');
+            patients[patient_count].name = trim(patients[patient_count].name);
+            getline(ss, patients[patient_count].id, '\t');
+            patients[patient_count].id = trim(patients[patient_count].id);
+            ss >> patients[patient_count].age;
+            patient_count++;
+        }
+        patientCheck.close();
+    }
 
-    while (true) {
-        int choice1;
-        cout << "\nWelcome to the Hospital Management System" << endl;
-        cout << "1. Patient Management" << endl;
-        cout << "2. Staff Management" << endl;
-        cout << "3. Lab and Equipment Management" << endl;
-        cout << "4. Pharmacy Management" << endl;
-        cout << "5. Billing Management" << endl;
-        cout << "6. Reports and Statistics" << endl;
-        cout << "7. Feedback" << endl;
-        cout << "8. Exit" << endl;
-        cout << "Please enter your choice: ";
-        cin >> choice1;
+    // Read appointment file
+    fstream appointmentCheck("Appointments.txt", ios::in);
+    if (appointmentCheck.is_open()) {
+        getline(appointmentCheck, line); // Skip header
+        while (getline(appointmentCheck, line)) {
+            stringstream ss(line);
+            string pid, appt_date, appt_descr;
+            getline(ss, pid, '\t');
+            getline(ss, appt_date, '\t');
+            getline(ss, appt_descr, '\t');
 
-        if (choice1 == 2) staff_menu();
-        else if (choice1 == 3) lab_and_equipment_menu();
-        else if (choice1 == 4) pharmacy_menu();
-        else if (choice1 == 8) break;
-        else cout << "Feature under development or invalid option.\n";
-    
+            // Remove trailing/leading whitespace (if any)
+            pid.erase(remove(pid.begin(), pid.end(), ' '), pid.end());
+            appt_date.erase(remove(appt_date.begin(), appt_date.end(), ' '), appt_date.end());
 
-      switch (choice1)
-{
-case 1:
-{
-    cout << "Patient Management" << endl;
-    int choice2;
-    cout << "1. Patient Registration" << endl;
-    cout << "2. Schedule Appointment" << endl;
-    cout << "3. Check Appointment Records" << endl;
-    cout << "4. Electronic Medical Records" << endl;
-    cout << "5. Exit" << endl;
-    cout << "Please enter your choice: ";
-    cin >> choice2;
-
-    switch (choice2)
-    {
-    case 1:
-        cout << "Patient Registration" << endl;
-        if (patient_count < MAX_RECORDS)
-        {
-            cout << "Enter Patient Name: ";
-            cin.ignore();
-            getline(cin, patients[patient_count].name);
-
-            cout << "Enter Patient ID: ";
-            cin >> patients[patient_count].id;
-
-            bool exists = false;
-            for (int i = 0; i < patient_count; i++)
-            {
-                if (patients[i].id == patients[patient_count].id)
-                {
-                    exists = true;
+            for (int i = 0; i < patient_count; ++i) {
+                if (patients[i].id == pid) {
+                    patients[i].apt.appointment_date = appt_date;
+                    patients[i].apt.description = appt_descr;
                     break;
                 }
             }
-            if (exists)
-            {
-                cout << "Patient ID already exists. Please enter a different ID." << endl;
+        }
+        appointmentCheck.close();
+    }
+
+    while (true) {
+        int choice1;
+        cout << "Welcome to the Hospital Management System" << endl;
+        cout << "1. Patient Management" << endl;
+        cout << "2. Staff Management" << endl;
+        cout << "3. Billing Management" << endl;
+        cout << "4. Reports and Statistics" << endl;
+        cout << "5. Feedback" << endl;
+        cout << "6. Exit" << endl;
+        cout << "Please enter your choice: ";
+        cin >> choice1;
+        if (switchInputCheck()) continue;
+
+        switch (choice1) {
+            case 1: {
+                cout << "Patient Management" << endl;
+                int choice2;
+                cout << "1. Patient Registration" << endl;
+                cout << "2. Schedule Appointment" << endl;
+                cout << "3. Check Appointment Records" << endl;
+                cout << "4. Electronic Medical Records" << endl;
+                cout << "5. Exit" << endl;
+                cout << "Please enter your choice: ";
+                cin >> choice2;
+                if (switchInputCheck()) continue;
+
+                switch (choice2) {
+                    case 1: {
+                        cout << "Patient Registration" << endl;
+                        if (patient_count < MAX_RECORDS) {
+                            cout << "Enter Patient Name: ";
+                            cin.ignore();
+                            getline(cin, patients[patient_count].name);
+
+                            cout << "Enter Patient ID: ";
+                            cin >> patients[patient_count].id;
+
+                            bool exists = false;
+                            for (int i = 0; i < patient_count; i++) {
+                                if (patients[i].id == patients[patient_count].id) {
+                                    exists = true;
+                                    break;
+                                }
+                            }
+                            if (exists) {
+                                cout << "Patient ID already exists. Please enter a different ID." << endl;
+                                break;
+                            }
+
+                            cout << "Enter Patient Age: ";
+                            cin >> patients[patient_count].age;
+                            fstream patient_file;
+                            patient_file.open("Patient Record.txt", ios::app);
+                            if (patient_file.is_open()) {
+                                if (patient_count == 0) {
+                                    patient_file << left;
+                                    patient_file << setw(32) << "Patient Name" << "\t"
+                                                 << setw(10) << "ID" << "\t"
+                                                 << setw(3) << "Age" << "\n";
+                                    fstream appointment_file;
+                                    appointment_file.open("Appointments.txt", ios::out);
+                                    if (appointment_file.is_open()) {
+                                        appointment_file << left;
+                                        appointment_file << setw(10) << "Patient ID" << "\t"
+                                                         << setw(20) << "Appointment Date" << "\t"
+                                                         << setw(100) << "Description" << endl;
+                                        appointment_file.close();
+                                    }
+                                    else {
+                                        cout << "Failed to open Appointments.txt";
+                                        return 1;
+                                    }
+                                }
+
+                                patient_file << left;
+                                patient_file << setw(32) << patients[patient_count].name << "\t"
+                                             << setw(10) << patients[patient_count].id << "\t"
+                                             << setw(3) << patients[patient_count].age << "\n";
+                                patient_file.close();
+                            }
+
+                            cout << "Patient registered successfully!" << endl;
+                            cout << "Patient ID: " << patients[patient_count].id << endl;
+                            patient_count++;
+                        } else {
+                            cout << "Patient records are full." << endl;
+                        }
+                        break;
+                    }
+                    case 2: {
+                        cout << "Schedule Appointment" << endl;
+                        cout << "Enter Patient ID: ";
+                        cin >> patient_id;
+                        bool found = false;
+                        for (int i = 0; i < patient_count; i++) {
+                            if (patients[i].id == patient_id) {
+                                found = true;
+                                cout << "Enter Appointment Date (YYYY-MM-DD): ";
+                                string date_input;
+                                cin >> date_input;
+                                regex date_pattern(R"(\d{4}-\d{2}-\d{2})");
+                                while (!regex_match(date_input, date_pattern)) {
+                                    cout << "Invalid date format. Please enter the date in YYYY-MM-DD format: ";
+                                    cin >> date_input;
+                                }
+                                patients[i].apt.appointment_date = date_input;
+                                cout << "Enter a brief description of the patient: ";
+                                cin.ignore();
+                                getline(cin, patients[i].apt.description);
+
+                                fstream set_appointment("Appointments.txt", ios::app);
+                                if (set_appointment.is_open()) {
+                                    set_appointment << left;
+                                    set_appointment << setw(10) << patients[i].id << '\t'
+                                                    << setw(20) << patients[i].apt.appointment_date << '\t'
+                                                    << setw(150) << patients[i].apt.description << '\n';
+                                    cout << "Appointment scheduled successfully!" << endl;
+                                    set_appointment.close();
+                                } else {
+                                    cout << "Failed to schedule appointment, try again!" << endl;
+                                }
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            cout << "Patient not found." << endl;
+                        }
+                        break;
+                    }
+                    case 3: {
+                        cout << "Check Appointment Records" << endl;
+                        cout << "Enter Patient ID to view appointment records: ";
+                        cin >> patient_id;
+                        bool found = false;
+                        for (int i = 0; i < patient_count; i++) {
+                            if (patients[i].id == patient_id) {
+                                found = true;
+                                cout << "Patient ID: " << patients[i].id << '\n'
+                                     << "Patient Name: " << patients[i].name << '\n';
+                                if (patients[i].apt.appointment_date.empty()) {
+                                    cout << "No appointment scheduled." << '\n';
+                                } else {
+                                    cout << "Appointment Date: " << patients[i].apt.appointment_date << '\n';
+                                }
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            cout << "No records found for this Patient ID." << endl;
+                        }
+                        break;
+                    }
+                    case 4:
+                        cout << "Electronic Medical Records\n" << endl;
+                        cout << "Which record would you like to see\n";
+                        cout << "1. Patient Record\n"
+                             << "2. Appointment Record\n"
+                             << "3. Exit\n";
+                        int choice9;
+                        cin >> choice9;
+                        if(cin.fail()){
+                            cout << "Invalid Input! Try Again.\n";
+                        }
+                        switch(choice9){
+                            case 1:
+                                cout << left;
+                                cout << setw(32) << "Patient Name" << " | "
+                                     << setw(10) << "ID" << " | "
+                                     << setw(3)  << "Age\n";
+
+                                for(int i=0; i<patient_count; i++){
+                                    cout << left;
+                                    cout << setw(32) << patients[i].name << " | "
+                                         << setw(10) << patients[i].id << " | "
+                                         << setw(3)  << patients[i].age << '\n';
+                                }
+                                break;
+                            case 2:
+                                cout << left;
+                                cout << setw(32) << "Name" << " | "
+                                     << setw(10) << "ID" << " | "
+                                     << setw(20) << "Appointment Date" << " | "
+                                     << setw(150) << "Description" <<'\n';
+                                for(int i=0; i < patient_count; i++){
+                                    cout << left;
+                                    cout << setw(32) << patients[i].name << " | "
+                                         << setw(10) << patients[i].id << " | "
+                                         << setw(20) << patients[i].apt.appointment_date << " | "
+                                         << setw(100) << patients[i].apt.description << endl;
+                                }
+                                break;
+                            case 3:
+                                cout << "Exiting the program...";
+                                return 0;
+                            default:
+                                cout << "Invalid choice. Please try again.";
+                        }
+                        break;
+                    case 5:
+                        cout << "Exiting..." << endl;
+                        return 0; // Exit the program
+                    default:
+                        cout << "Invalid choice. Please try again." << endl;
+                }
                 break;
             }
-
-            cout << "Enter Patient Age: ";
-            cin >> patients[patient_count].age;
-
-            fstream patientfile("Patient Record.txt", ios::app);
-            if (patientfile.is_open())
-            {
-                if (patient_count == 0)
-                {
-                    patientfile << "Patient Name\tID\tAge\n";
-                }
-                patientfile << patients[patient_count].name << "\t"
-                            << patients[patient_count].id << "\t"
-                            << patients[patient_count].age << "\n";
-            }
-
-            cout << "Patient registered successfully!" << endl;
-            cout << "Patient ID: " << patients[patient_count].id << endl;
-            patient_count++;
-        }
-        else
-        {
-            cout << "Patient records are full." << endl;
-        }
-        break;
-
     case 2:
         cout << "Schedule Appointment" << endl;
         cout << "Enter Patient ID: ";
