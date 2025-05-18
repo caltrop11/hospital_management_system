@@ -773,37 +773,131 @@ case 5:
     }
     break;
 
+
 case 6:
 {
-    cout << "Reports and Analytics" << endl;
+    cout << "\n=== Reports and Statistics ===" << endl;
     int choice5;
-    cout << "1. Patient Statistics" << endl;
-    cout << "2. Staff Performance" << endl;
-    cout << "3. Financial Reports" << endl;
-    cout << "4. Exit" << endl;
-    cout << "Please enter your choice: ";
-    cin >> choice5;
+    do {
+        cout << "\n1. Patient Statistics" << endl;
+        cout << "2. Staff Performance" << endl;
+        cout << "3. Financial Report" << endl;
+        cout << "4. Return to Main Menu" << endl;
+        cout << "Please enter your choice: ";
+        cin >> choice5;
 
-    switch (choice5)
-    {
-    case 1:
-        cout << "Patient Statistics" << endl;
-        // Add code
-        break;
-    case 2:
-        cout << "Staff Performance" << endl;
-        // Add code
-        break;
-    case 3:
-        cout << "Financial Reports" << endl;
-        // Add code
-        break;
-    case 4:
-        cout << "Exiting..." << endl;
-        return 0;
-    default:
-        cout << "Invalid choice. Please try again." << endl;
-    }
+        switch (choice5)
+        {
+        case 1: {
+            // Patient Statistics
+            cout << "\n--- PATIENT STATISTICS ---" << endl;
+            cout << "Total Registered Patients: " << patient_count << endl;
+            
+            // Age distribution
+            cout << "\nAge Distribution:" << endl;
+            int ageGroups[4] = {0}; // 0-18, 19-35, 36-60, 61+
+            for (int i = 0; i < patient_count; i++) {
+                if (patients[i].age <= 18) ageGroups[0]++;
+                else if (patients[i].age <= 35) ageGroups[1]++;
+                else if (patients[i].age <= 60) ageGroups[2]++;
+                else ageGroups[3]++;
+            }
+            
+            cout << "Children (0-18):    " << setw(4) << ageGroups[0] << " patients" << endl;
+            cout << "Adults (19-35):    " << setw(4) << ageGroups[1] << " patients" << endl;
+            cout << "Middle-aged (36-60):" << setw(4) << ageGroups[2] << " patients" << endl;
+            cout << "Seniors (61+):     " << setw(4) << ageGroups[3] << " patients" << endl;
+            
+            // Appointment statistics
+            int withAppointments = 0;
+            for (int i = 0; i < patient_count; i++) {
+                if (!patients[i].apt.appointment_date.empty()) {
+                    withAppointments++;
+                }
+            }
+            cout << "\nPatients with appointments: " << withAppointments << "/" << patient_count 
+                 << " (" << fixed << setprecision(1) 
+                 << (patient_count > 0 ? (withAppointments * 100.0 / patient_count) : 0)
+                 << "%)" << endl;
+            break;
+        }
+        
+        case 2: {
+            // Staff Performance
+            cout << "\n--- STAFF PERFORMANCE ---" << endl;
+            cout << "Total Staff Members: " << staff_list.size() << endl;
+            
+            // Department efficiency (simplified - assumes more staff = more capacity)
+            cout << "\nDepartment Staffing:" << endl;
+            map<string, int> deptCount;
+            for (const auto& s : staff_list) {
+                deptCount[s.department]++;
+            }
+            
+            for (const auto& dept : deptCount) {
+                cout << left << setw(15) << dept.first << ": " 
+                     << setw(3) << dept.second << " staff ("
+                     << fixed << setprecision(1) 
+                     << (staff_list.size() > 0 ? (dept.second * 100.0 / staff_list.size()) : 0)
+                     << "%)" << endl;
+            }
+            
+            // Lab technician performance (if available)
+            if (!lab_results.empty()) {
+                cout << "\nLab Technician Performance:" << endl;
+                map<string, int> techTests;
+                for (const auto& lr : lab_results) {
+                    techTests[lr.technician]++;
+                }
+                
+                for (const auto& tech : techTests) {
+                    cout << left << setw(20) << tech.first << ": " 
+                         << tech.second << " tests conducted" << endl;
+                }
+            }
+            break;
+        }
+        
+        case 3: {
+            // Financial Report
+            cout << "\n--- FINANCIAL REPORT ---" << endl;
+            
+            double totalBilled = 0.0;
+            double totalPaid = 0.0;
+            int unpaidCount = 0;
+            
+            for (int i = 0; i < billing_count; i++) {
+                totalBilled += billings[i].amount;
+                if (billings[i].status.find("Paid") != string::npos) {
+                    totalPaid += billings[i].amount;
+                } else {
+                    unpaidCount++;
+                }
+            }
+            
+            cout << fixed << setprecision(2);
+            cout << "Total Revenue:     $" << setw(10) << totalBilled << endl;
+            cout << "Amount Collected:  $" << setw(10) << totalPaid << endl;
+            cout << "Outstanding:       $" << setw(10) << (totalBilled - totalPaid) << endl;
+            cout << "Unpaid Bills:      " << setw(10) << unpaidCount << endl;
+            
+            // Payment types
+            if (billing_count > 0) {
+                cout << "\nPayment Distribution:" << endl;
+                cout << "Collected: " << (totalPaid/totalBilled)*100 << "%" << endl;
+                cout << "Outstanding: " << ((totalBilled-totalPaid)/totalBilled)*100 << "%" << endl;
+            }
+            break;
+        }
+        
+        case 4:
+            cout << "Returning to Main Menu..." << endl;
+            break;
+            
+        default:
+            cout << "Invalid choice. Please try again." << endl;
+        }
+    } while (choice5 != 4);
     break;
 }
 
